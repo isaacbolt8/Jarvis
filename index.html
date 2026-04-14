@@ -1,0 +1,158 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Jarvis AI Nível 3</title><style>
+body {
+    margin: 0;
+    background: radial-gradient(circle, #000 60%, #001a1a);
+    color: cyan;
+    font-family: Arial;
+    overflow: hidden;
+}
+
+#hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+#response {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    max-width: 400px;
+}
+
+video {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 200px;
+    border: 2px solid cyan;
+}
+</style></head>
+<body><div id="hud">
+    <div>JARVIS NÍVEL 3</div>
+    <div id="time"></div>
+</div><div id="response">Inicializando...</div>
+<video id="camera" autoplay></video><script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script><script>
+
+// ======================
+// 📷 CAMERA
+// ======================
+navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+.then(stream => {
+    document.getElementById('camera').srcObject = stream;
+});
+
+// ======================
+// 🕒 TEMPO EM TEMPO REAL
+// ======================
+setInterval(()=>{
+    document.getElementById("time").innerText =
+        new Date().toLocaleTimeString();
+},1000);
+
+// ======================
+// 🎤 VOICE
+// ======================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.lang = "pt-BR";
+recognition.continuous = true;
+
+recognition.onresult = async function(event) {
+    let text = event.results[event.results.length - 1][0].transcript;
+    processCommand(text);
+};
+
+recognition.start();
+
+// ======================
+// 🔊 SPEAK
+// ======================
+function speak(text){
+    let msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "pt-BR";
+    speechSynthesis.speak(msg);
+}
+
+// ======================
+// 🧠 IA REAL
+// ======================
+async function askAI(prompt){
+
+    try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + CONFIG.API_KEY
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [{role: "user", content: prompt}]
+            })
+        });
+
+        const data = await res.json();
+        return data.choices[0].message.content;
+
+    } catch(e){
+        return "Erro ao acessar IA.";
+    }
+}
+
+// ======================
+// COMANDOS
+// ======================
+async function processCommand(cmd){
+
+    let response = "";
+
+    if(cmd.includes("hora")){
+        response = new Date().toLocaleTimeString();
+    }
+    else if(cmd.includes("abrir youtube")){
+        window.open("https://youtube.com");
+        response = "Abrindo YouTube";
+    }
+    else {
+        response = await askAI(cmd);
+    }
+
+    document.getElementById("response").innerText = response;
+    speak(response);
+}
+
+// ======================
+// 🌍 HOLOGRAMA 3D
+// ======================
+const scene = new THREE.Scene();
+const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const geometry = new THREE.SphereGeometry(2, 64, 64);
+const material = new THREE.MeshBasicMaterial({
+    color: 0x00ffff,
+    wireframe: true
+});
+
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+
+camera3D.position.z = 5;
+
+function animate(){
+    requestAnimationFrame(animate);
+    sphere.rotation.y += 0.01;
+    renderer.render(scene, camera3D);
+}
+animate();
+
+</script></body>
+  </html>
