@@ -1,47 +1,40 @@
-import express from "express";
-import cors from "cors";
+const express = require("express");
+const path = require("path");
+const fetch = require("node-fetch");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-// teste simples
-app.get("/", (req, res) => {
-res.send("Jarvis backend online 🚀");
-});
+// 🤖 GEMINI API
+app.post("/api/ia", async (req, res) => {
+  try {
+    const texto = req.body.text;
 
-// IA REAL
-app.post("/jarvis", async (req, res) => {
-const { message } = req.body;
-
-try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=SUA_API_KEY",
+      {
         method: "POST",
-        headers: {
-            "Authorization": `Bearer ${process.env.API_KEY}`,
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: "Você é o Jarvis, inteligente e direto." },
-                { role: "user", content: message }
-            ]
+          contents: [{ parts: [{ text: texto }] }]
         })
-    });
+      }
+    );
 
     const data = await response.json();
 
-    res.json({
-        reply: data.choices[0].message.content
-    });
+    const resposta =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Não consegui responder";
 
-} catch (err) {
-    res.json({
-        reply: "Erro ao acessar IA"
-    });
-}
+    res.json({ resposta });
 
+  } catch (err) {
+    res.json({ resposta: "Erro na IA" });
+  }
 });
 
-app.listen(3000, () => console.log("Rodando"));
+app.listen(3000, "0.0.0.0", () => {
+  console.log("Jarvis rodando na porta 3000");
+})
