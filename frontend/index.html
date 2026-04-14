@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="style.css">
+  <title>Jarvis</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; color: white; }
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>JARVIS</h1>
-<video id="camera" autoplay></video>
+<div id="ui">
+  <input id="input" placeholder="Fale com o Jarvis..." />
+  <button onclick="enviar()">Enviar</button>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
